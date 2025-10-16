@@ -1,56 +1,109 @@
 using System;
 
-// 1.0
+// ✅ Клас простого дробу
 public class Fraction
 {
-    
-    protected double a;
+    // FIX: зроблено приватним полем із властивістю замість protected
+    private double _a;
+
+    // NEW: властивість із простою валідацією
+    public double A
+    {
+        get => _a;
+        set
+        {
+            if (Math.Abs(value) < 1e-12)
+                Console.WriteLine("⚠️ Попередження: коефіцієнт 'a' дуже малий, можливі помилки при діленні.");
+            _a = value;
+        }
+    }
 
     public Fraction()
     {
-        a = 1.0; 
+        _a = 1.0;
     }
 
-    // 2
+    // Ввід коефіцієнта
     public virtual void SetCoefficients()
     {
         Console.WriteLine("--- Налаштування простого дробу ---");
         Console.Write("Введіть коефіцієнт 'a' для дробу виду 1/(a*x): ");
-        while (!double.TryParse(Console.ReadLine(), out a))
+
+        double value;
+        while (!double.TryParse(Console.ReadLine(), out value))
         {
             Console.WriteLine("Помилка. Будь ласка, введіть коректне число.");
             Console.Write("Введіть коефіцієнт 'a': ");
         }
+        A = value;
     }
 
-    // 3
+    // Вивід коефіцієнтів
     public virtual void DisplayCoefficients()
     {
         Console.WriteLine("\n--- Інформація про простий дріб ---");
         Console.WriteLine("Тип: 'дріб'");
-        Console.WriteLine($"Формула: 1 / ({a} * x)");
-        Console.WriteLine($"Коефіцієнт a = {a}");
+        Console.WriteLine($"Формула: 1 / ({_a} * x)");
+        Console.WriteLine($"Коефіцієнт a = {_a}");
     }
 
-    // 4
+    // Обчислення 1/(a*x)
     public virtual double Calculate(double x)
     {
-        double denominator = a * x;
-        if (denominator == 0)
+        double denominator = _a * x;
+
+        // FIX: порівняння через епсілон
+        const double eps = 1e-12;
+        if (Math.Abs(denominator) < eps)
         {
-            // 5
-            throw new DivideByZeroException("Знаменник (a*x) не може дорівнювати нулю.");
+            throw new DivideByZeroException("Знаменник (a*x) занадто малий або дорівнює нулю.");
         }
         return 1.0 / denominator;
     }
+
+    // NEW: додатковий метод для зручного задання параметра без Console
+    public void SetCoefficients(double a) => A = a;
 }
 
-// 6
+
+// ✅ Клас складного (тригонометричного) дробу
 public class ComplexFraction : Fraction
 {
-    private double a1, a2, a3;
+    // FIX: приватні поля замість захищених
+    private double _a1, _a2, _a3;
 
-    // 7
+    // NEW: властивості для зручності та перевірки
+    public double A1
+    {
+        get => _a1;
+        set
+        {
+            if (Math.Abs(value - 3.0) < 1e-12)
+                throw new ArgumentException("Коефіцієнт a1 не може дорівнювати 3.");
+            _a1 = value;
+        }
+    }
+    public double A2
+    {
+        get => _a2;
+        set
+        {
+            if (Math.Abs(value - 3.0) < 1e-12)
+                throw new ArgumentException("Коефіцієнт a2 не може дорівнювати 3.");
+            _a2 = value;
+        }
+    }
+    public double A3
+    {
+        get => _a3;
+        set
+        {
+            if (Math.Abs(value - 3.0) < 1e-12)
+                throw new ArgumentException("Коефіцієнт a3 не може дорівнювати 3.");
+            _a3 = value;
+        }
+    }
+
     private double ReadCoefficient(string name)
     {
         double value;
@@ -59,7 +112,7 @@ public class ComplexFraction : Fraction
             Console.Write($"Введіть коефіцієнт '{name}' (не може дорівнювати 3): ");
             if (double.TryParse(Console.ReadLine(), out value))
             {
-                if (value == 3)
+                if (Math.Abs(value - 3.0) < 1e-12)
                 {
                     Console.WriteLine("Помилка: коефіцієнт не може дорівнювати 3. Спробуйте ще раз.");
                 }
@@ -75,66 +128,69 @@ public class ComplexFraction : Fraction
         }
     }
 
-   
+    // Ввід коефіцієнтів
     public override void SetCoefficients()
     {
         Console.WriteLine("\n--- Налаштування тригонометричного підхідного дробу ---");
-        a1 = ReadCoefficient("a1");
-        a2 = ReadCoefficient("a2");
-        a3 = ReadCoefficient("a3");
+        A1 = ReadCoefficient("a1");
+        A2 = ReadCoefficient("a2");
+        A3 = ReadCoefficient("a3");
     }
 
-    
+    // Вивід інформації
     public override void DisplayCoefficients()
     {
         Console.WriteLine("\n--- Інформація про тригонометричний підхідний дріб ---");
         Console.WriteLine("Тип: 'тригонометричний підхідний дріб'");
-        Console.WriteLine("Формула: 1 / (a1*x + 1 / (a2*x + 1 / a3*x))");
-        Console.WriteLine($"Коефіцієнти: a1 = {a1}, a2 = {a2}, a3 = {a3}");
+        // FIX: виправлено формулу з дужками
+        Console.WriteLine("Формула: 1 / (a1*x + 1 / (a2*x + 1 / (a3*x)))");
+        Console.WriteLine($"Коефіцієнти: a1 = {A1}, a2 = {A2}, a3 = {A3}");
     }
 
-    
+    // Обчислення складного дробу
     public override double Calculate(double x)
     {
-        // 8
-        double innerDenominator = a3 * x;
-        if (innerDenominator == 0)
-        {
-            throw new DivideByZeroException("Внутрішній знаменник (a3*x) дорівнює нулю.");
-        }
+        const double eps = 1e-12;
 
-        double middleDenominator = a2 * x + (1.0 / innerDenominator);
-        if (middleDenominator == 0)
-        {
-            throw new DivideByZeroException("Середній знаменник дорівнює нулю.");
-        }
+        double innerDenominator = A3 * x;
+        if (Math.Abs(innerDenominator) < eps)
+            throw new DivideByZeroException("Внутрішній знаменник (a3*x) занадто малий або дорівнює нулю.");
 
-        double outerDenominator = a1 * x + (1.0 / middleDenominator);
-        if (outerDenominator == 0)
-        {
-            throw new DivideByZeroException("Зовнішній знаменник дорівнює нулю.");
-        }
+        double middleDenominator = A2 * x + (1.0 / innerDenominator);
+        if (Math.Abs(middleDenominator) < eps)
+            throw new DivideByZeroException("Середній знаменник занадто малий або дорівнює нулю.");
+
+        double outerDenominator = A1 * x + (1.0 / middleDenominator);
+        if (Math.Abs(outerDenominator) < eps)
+            throw new DivideByZeroException("Зовнішній знаменник занадто малий або дорівнює нулю.");
 
         return 1.0 / outerDenominator;
     }
+
+    // NEW: перегрузка для зручного тестування без вводу
+    public void SetCoefficients(double a1, double a2, double a3)
+    {
+        A1 = a1;
+        A2 = a2;
+        A3 = a3;
+    }
 }
 
+
+// ✅ Головна програма
 public class Program
 {
     public static void Main(string[] args)
     {
-        // 9
         Fraction simpleFraction = new Fraction();
         ComplexFraction complexFraction = new ComplexFraction();
 
-        // 10
         simpleFraction.SetCoefficients();
         simpleFraction.DisplayCoefficients();
 
         complexFraction.SetCoefficients();
         complexFraction.DisplayCoefficients();
 
-        
         Console.WriteLine("\n-------------------------------------------");
         Console.Write("Введіть значення 'x' для обчислення дробів: ");
         double x;
@@ -144,7 +200,6 @@ public class Program
             Console.Write("Введіть значення 'x': ");
         }
 
-        
         try
         {
             double result1 = simpleFraction.Calculate(x);
@@ -155,7 +210,6 @@ public class Program
             Console.WriteLine($"\n❌ Помилка обчислення простого дробу: {ex.Message}");
         }
 
-       
         try
         {
             double result2 = complexFraction.Calculate(x);
