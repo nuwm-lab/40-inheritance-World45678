@@ -1,6 +1,6 @@
 using System;
 
-// 1
+// 1.0
 public class Fraction
 {
     
